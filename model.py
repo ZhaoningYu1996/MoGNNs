@@ -40,12 +40,13 @@ class PNA_Net(torch.nn.Module):
         return x
     
 class GCN_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, num_layers):
+    def __init__(self, hid_channels, out_channels, num_layers, dropout):
         super(GCN_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(GCNConv(in_channels=hid_channels, out_channels=hid_channels, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -62,7 +63,7 @@ class GCN_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -70,12 +71,13 @@ class GCN_Net(torch.nn.Module):
         return x
     
 class GCNv2_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, num_layers):
+    def __init__(self, hid_channels, out_channels, num_layers, dropout):
         super(GCNv2_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(GraphConv(in_channels=hid_channels, out_channels=hid_channels, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -92,7 +94,7 @@ class GCNv2_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -100,12 +102,13 @@ class GCNv2_Net(torch.nn.Module):
         return x
     
 class SAGE_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, num_layers):
+    def __init__(self, hid_channels, out_channels, num_layers, dropout):
         super(SAGE_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(SAGEConv(in_channels=hid_channels, out_channels=hid_channels, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -122,7 +125,7 @@ class SAGE_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -130,12 +133,13 @@ class SAGE_Net(torch.nn.Module):
         return x
     
 class GIN_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, num_layers):
+    def __init__(self, hid_channels, out_channels, num_layers, dropout):
         super(GIN_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(GINConv(nn.Sequential(nn.Linear(hid_channels, hid_channels), nn.ReLU(), nn.Linear(hid_channels, hid_channels))))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -152,7 +156,7 @@ class GIN_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -160,12 +164,13 @@ class GIN_Net(torch.nn.Module):
         return x
     
 class GINE_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, num_layers):
+    def __init__(self, hid_channels, out_channels, num_layers, dropout):
         super(GINE_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(GINEConv(nn.Sequential(nn.Linear(hid_channels, hid_channels), nn.ReLU(), nn.Linear(hid_channels, hid_channels))))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -183,7 +188,7 @@ class GINE_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -191,12 +196,13 @@ class GINE_Net(torch.nn.Module):
         return x
     
 class GAT_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, heads, num_layers):
+    def __init__(self, hid_channels, out_channels, heads, num_layers, dropout):
         super(GAT_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(GATConv(in_channels=hid_channels, out_channels=hid_channels, heads=heads, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -213,7 +219,7 @@ class GAT_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -221,12 +227,13 @@ class GAT_Net(torch.nn.Module):
         return x
     
 class GATv2_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, heads, num_layers):
+    def __init__(self, hid_channels, out_channels, heads, num_layers, dropout):
         super(GATv2_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(GATv2Conv(in_channels=hid_channels, out_channels=hid_channels, heads=heads, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -243,7 +250,7 @@ class GATv2_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -251,12 +258,13 @@ class GATv2_Net(torch.nn.Module):
         return x
     
 class Transformer_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, heads, num_layers):
+    def __init__(self, hid_channels, out_channels, heads, num_layers, dropout):
         super(Transformer_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(TransformerConv(in_channels=hid_channels, out_channels=hid_channels, heads=heads, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -273,7 +281,7 @@ class Transformer_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -281,12 +289,13 @@ class Transformer_Net(torch.nn.Module):
         return x
     
 class ARMA_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, num_layers):
+    def __init__(self, hid_channels, out_channels, num_layers, dropout):
         super(ARMA_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(ARMAConv(in_channels=hid_channels, out_channels=hid_channels, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -303,7 +312,7 @@ class ARMA_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
@@ -311,12 +320,13 @@ class ARMA_Net(torch.nn.Module):
         return x
     
 class TAG_Net(torch.nn.Module):
-    def __init__(self, hid_channels, out_channels, num_layers):
+    def __init__(self, hid_channels, out_channels, num_layers, dropout):
         super(TAG_Net, self).__init__()
         
         self.num_layers = num_layers
         self.layers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
+        self.dropout = dropout
         for _ in range(self.num_layers):
             self.layers.append(TAGConv(in_channels=hid_channels, out_channels=hid_channels, add_self_loops=True))
             self.batch_norms.append(BatchNorm(hid_channels))
@@ -333,7 +343,7 @@ class TAG_Net(torch.nn.Module):
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
-            x = F.dropout(x, 0.3, training=self.training)
+            x = F.dropout(x, self.dropout, training=self.training)
             
         x = global_mean_pool(x, batch)
         x = self.mlp(x)
