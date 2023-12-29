@@ -181,10 +181,11 @@ class GINE_Net(torch.nn.Module):
         
     def forward(self, x, edge_index, edge_attr, batch):
         x = self.embedding_h(x)
+        e = self.embedding_b(edge_attr)
         
         for i in range(len(self.layers)):
             x_h = x
-            x = self.layers[i](x, edge_index, edge_attr)
+            x = self.layers[i](x, edge_index, e)
             x = self.batch_norms[i](x)
             x = F.relu(x)
             x = x_h + x
