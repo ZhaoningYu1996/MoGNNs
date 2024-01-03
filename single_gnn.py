@@ -3,14 +3,15 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.utils import degree
 from ogb.graphproppred import PygGraphPropPredDataset
 from ogb.graphproppred import Evaluator
-from model import PNA_Net, GCN_Net, GIN_Net, GINE_Net
+from model import PNA_Net, GCN_Net, GIN_Net, GINE_Net, GATv2_Net, ARMA_Net, GCNv2_Net, TAG_Net, Transformer_Net
 from tqdm import tqdm
 
 def train():
     model.train()
     for data in train_loader:
         data.to(device)
-        out = model(data.x, data.edge_index, data.edge_attr, data.batch)
+        # out = model(data.x, data.edge_index, data.edge_attr, data.batch)
+        out = model(data.x, data.edge_index, data.batch)
         is_labeled = data.y == data.y
         loss = criterion(out[is_labeled], data.y.float()[is_labeled])
         optimizer.zero_grad()
@@ -24,7 +25,8 @@ def test(loder):
     with torch.no_grad():
         for data in loder:
             data.to(device)
-            out = model(data.x, data.edge_index, data.edge_attr, data.batch)
+            # out = model(data.x, data.edge_index, data.edge_attr, data.batch)
+            out = model(data.x, data.edge_index, data.batch)
             y_true.append(data.y)
             y_pred.append(out)
 
@@ -54,22 +56,28 @@ for i in range(loop_n):
     test_loader = DataLoader(dataset[split_idx["test"]], batch_size=32, shuffle=False)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # # Compute the maximum in-degree in the training data.
-    # max_degree = -1
-    # for data in dataset[split_idx["train"]]:
-    #     d = degree(data.edge_index[1], num_nodes=data.num_nodes, dtype=torch.long)
-    #     max_degree = max(max_degree, int(d.max()))
+    # Compute the maximum in-degree in the training data.
+    max_degree = -1
+    for data in dataset[split_idx["train"]]:
+        d = degree(data.edge_index[1], num_nodes=data.num_nodes, dtype=torch.long)
+        max_degree = max(max_degree, int(d.max()))
 
-    # # Compute the in-degree histogram tensor
-    # deg = torch.zeros(max_degree + 1, dtype=torch.long)
-    # for data in dataset[split_idx["train"]]:
-    #     d = degree(data.edge_index[1], num_nodes=data.num_nodes, dtype=torch.long)
-    #     deg += torch.bincount(d, minlength=deg.numel())
+    # Compute the in-degree histogram tensor
+    deg = torch.zeros(max_degree + 1, dtype=torch.long)
+    for data in dataset[split_idx["train"]]:
+        d = degree(data.edge_index[1], num_nodes=data.num_nodes, dtype=torch.long)
+        deg += torch.bincount(d, minlength=deg.numel())
 
-    model = GINE_Net(hid_channels=300, out_channels=1, num_layers=5, dropout=0.5).to(device)
+    # model = PNA_Net(hid_channels=70, out_channels=1, num_layers=4, dropout=0.3, deg=deg).to(device)
+    # model = GINE_Net(hid_channels=300, out_channels=1, num_layers=5, dropout=0.5).to(device)
+    # model = GATv2_Net(hid_channels=75, out_channels=1, heads=4, num_layers=5, dropout=0.5).to(device)
+    # model = ARMA_Net(hid_channels=300, out_channels=1, num_layers=5, dropout=0.3).to(device)
+    # model = GCNv2_Net(hid_channels=300, out_channels=1, num_layers=5, dropout=0.5).to(device)
+    # model = TAG_Net(hid_channels=300, out_channels=1, num_layers=5, dropout=0.5).to(device)
+    model = Transformer_Net(hid_channels=75, out_channels=1, heads=4, num_layers=3, dropout=0.5).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = torch.nn.BCEWithLogitsLoss()
-    max_test = 0.0
+    max_valid = 0.0
     for epoch in tqdm(range(1,101)):
         train()
         train_acc = test(train_loader)
@@ -78,9 +86,9 @@ for i in range(loop_n):
         list_train_rocauc[i].append(list(train_acc.values()))
         list_valid_rocauc[i].append(list(valid_acc.values()))
         list_test_rocauc[i].append(list(test_acc.values()))
-        if list(test_acc.values())[0] >= max_test:
+        if list(valid_acc.values())[0] >= max_valid:
             max_test = list(test_acc.values())[0]
-            torch.save(model.state_dict(), 'models/GINE.pth')
+            torch.save(model.state_dict(), 'models/Transformer.pth')
         print(
             f'Epoch: {epoch:03d}, Train AUC: {train_acc}, Valid AUC :{valid_acc}, Test AUC: {test_acc}')
 
